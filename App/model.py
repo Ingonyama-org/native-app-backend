@@ -1,10 +1,5 @@
 import os
-from bson import Binary
 import certifi
-import json
-import base64
-from flask import request
-from bson.objectid import ObjectId
 
 import gridfs
 from pymongo import MongoClient
