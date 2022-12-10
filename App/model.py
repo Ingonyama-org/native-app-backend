@@ -1,5 +1,11 @@
 import os
+from bson import Binary
 import certifi
+import json
+import base64
+from flask import request
+from bson.objectid import ObjectId
+
 import gridfs
 from pymongo import MongoClient
 from dotenv import load_dotenv, find_dotenv
@@ -15,7 +21,9 @@ password = os.environ.get('MONGO_PWD')
 connection_string = f"mongodb+srv://lumona:{password}@ingonyama.mhjrkw1.mongodb.net/?retryWrites=true&w=majority"
 client = MongoClient(connection_string, tlsCAFile=certifi.where())
 ingonyama_app_db = client.ingonyama_app_dbl
+fs = gridfs.GridFS(ingonyama_app_db)
 user_collection = ingonyama_app_db.user
+img_detail_collection = ingonyama_app_db.details_img_uploaded
 
 def insert_user(name, email, password, date_joined):
     user = {
@@ -25,8 +33,6 @@ def insert_user(name, email, password, date_joined):
         "password":generate_password_hash(password,method="sha256")
         }
     user_collection.insert_one(user)
-# insert_user("LUms","luna@gmail.com","Kenya","+254712345678","Nairobi", "13th Aug 2022","I am Deaf","12345678")
-
 
 def check_user_exists(email):
     user = user_collection.find_one({'email':email.lower()})
@@ -34,52 +40,82 @@ def check_user_exists(email):
         return True
     else:
         return False
-# print(check_user_exists("LUMONA@gmail.com"))
 
-def upload_image():
-    #Create a object of GridFs for the above database.
-    fs = gridfs.GridFS(database)
+def upload_image(email, img_id, img_filename, time, date, actual_location):
+    user = user_collection.find_one({'email':email.lower()})
 
-    #define an image object with the location.
-    file = "C:/Users/user/Pictures/dog.jpeg"
+    if user:
+        img_detail = {
+            "email":email,
+            "img_id": img_id, 
+            "img_filename": img_filename,
+            "time": time,
+            "date":date,
+            "actual_location":actual_location
+        }
+        img_detail_collection.insert_one(img_detail)
 
-    #Open the image in read-only format.
-    with open(file, 'rb') as f:
-        contents = f.read()
-
-    #Now store/put the image via GridFs object.
-    fs.put(contents, filename="file")
-    
 
 def check_user_login(email,pwd):
     user_details = {}
-    user = user_collection.find_one({"email":email})
-    # print(user)
+    user = user_collection.find_one({"email":email.lower()})
     if user:
         if check_password_hash(user['password'], pwd):
+            # img_uploads = img_detail_collection.find_one({'email':email.lower()})
+            # if img_uploads:
+            #     for img_doc in img_detail_collection.find({'email': email.lower()}):
+            #         img_id = ObjectId(img_doc['img_id'])
+            #         storage = gridfs.GridFS(ingonyama_app_db, "fs")
+            #         print(storage.get(file_id=img_id))
+            #         try:
+            #             fileobj = storage.get(file_id=ObjectId(img_id))
+            #             print(fileobj)
+            #         except:
+            #             pass
+   
+
+                
             user_details.update({
                 "name": user['name'], 
                 "email": user['email'],
-                "date_joined":user["date_joined"] 
+                "date_joined":user["date_joined"],
+                # "img_data":fs.get(user_img_upload["img_id"]).read(),
+                # "img_url":f'{request.url_root}auth/app/upload/img/{user_img_upload["img_id"]}',
+                # "time":user_img_upload['time'],
+                # 'date':user_img_upload['date'],
+                # 'actual_location':user_img_upload['actual_location']
                 })
+          
             return user_details
         else: 
             return user_details
     else: 
         return user_details
     
-# print(check_user_login("luna@gmail.com", 'abcdefgh'))
 
 def update_user_details(id, email, password, name ):
     new_value={
         "name": name, 
-        "email":email,
+        "email":email.lower(),
         "password":generate_password_hash(password,method="sha256")
         }
     all_update = {
         "$set": new_value
         }
     user_collection.update_one({'key': id}, all_update)
+
+def get_user_by_email(email):
+    user = user_collection.find_one({'email':email})
+    return user    
+
+
+# def add_uploaded_data():
+#     new_img = user_collection.distinct("uploaded_imgsc")
+#     current_img = img_data_collection.distinct("uploaded")
+#     if new_img != current_img:
+#     data = {"uploaded": all_img}
+#     img_data_collection.update_one({'uploaded': email}, {"$push": {"uploaded_imgsc": byteImg}})
+
 
 
         

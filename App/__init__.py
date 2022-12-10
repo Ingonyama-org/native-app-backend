@@ -11,7 +11,9 @@ def create_app():
     app.config['SECRET_KEY'] =os.environ.get("SECRET_KEY")
   
     from .auth import auth
+    from .views import views
 
     app.register_blueprint(auth, url_prefix="/auth")
+    app.register_blueprint(views, url_prefix="/views")
 
     return app

@@ -1,12 +1,17 @@
+import base64
 from datetime import date
+from io import BytesIO
+from urllib import response
 from flask import Blueprint, request
+from PIL import Image
 from flask_cors import CORS, cross_origin
-from .model import check_user_exists, check_user_login, insert_user
+from .model import check_user_exists, check_user_login, insert_user, fs
 
 auth = Blueprint("auth", __name__)
 CORS(auth)
 
 user_data = {}
+img_data = {}
 user_exists={}
 
 today = date.today()
@@ -15,7 +20,7 @@ today = date.today()
 def check_email():
     if request.method =='POST': 
         data = request.json
-        email = data['email']
+        email = data['email'].lower()
         # print(email)
         user_exists.update({'status': check_user_exists(email)})
         # print(f"POST: {user_exists}")
@@ -30,13 +35,14 @@ def signup():
         user_data.clear()
         data = request.json
         user_data.update({
-            "email" :data["email"],
+            "email" :data["email"].lower(),
             "name":data["name"],
-            "date_joined": today.strftime("%B %d, %Y")
+            "date_joined": today.strftime("%B %d, %Y"),
         })
+       
         insert_user(
             data["name"], 
-            data["email"], 
+            data["email"].lower(), 
             data['password'],
             today.strftime("%B %d, %Y"),
             )
@@ -50,13 +56,14 @@ def login():
     if request.method == 'POST':
         user_data.clear()
         data = request.json
-        # print(data['email'])
-        # print(data['password'].strip())
         user_data.update(check_user_login(data['email'].strip(), data['password'].strip()))
-        # print(check_user_login(data['email'].strip(), data['password'].strip()))
     else:
         return user_data
     return "login tingz"
 
    
-
+@auth.route('app/upload/img/<id>')
+def gridfs_img(id):
+    thing = fs.get(id)
+    # response.content_type = 'image/jpeg'
+    return thing
