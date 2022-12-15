@@ -20,10 +20,13 @@ fs = gridfs.GridFS(ingonyama_app_db)
 user_collection = ingonyama_app_db.user
 img_detail_collection = ingonyama_app_db.details_img_uploaded
 
-def insert_user(name, email, password, date_joined):
+def insert_user(name, email, age, gender, nationality , password, date_joined):
     user = {
         "name": name, 
         "email":email.lower(),
+        "age":age,
+        "gender":gender,
+        "nationality":nationality,
         "date_joined":date_joined,
         "password":generate_password_hash(password,method="sha256")
         }

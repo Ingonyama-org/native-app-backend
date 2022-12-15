@@ -43,6 +43,9 @@ def signup():
         insert_user(
             data["name"], 
             data["email"].lower(), 
+            data["age"],
+            data['gender'],
+           data['nationality'],
             data['password'],
             today.strftime("%B %d, %Y"),
             )
