@@ -38,6 +38,9 @@ def signup():
             "email" :data["email"].lower(),
             "name":data["name"],
             "date_joined": today.strftime("%B %d, %Y"),
+            "age": data['age'],
+            "gender": data['gender'],
+            "nationality": data['nationality']
         })
        
         insert_user(
