@@ -1,11 +1,13 @@
 import base64
 from datetime import date
 from io import BytesIO
+from time import sleep
+import time
 from urllib import response
 from flask import Blueprint, request
 from PIL import Image
 from flask_cors import CORS, cross_origin
-from .model import check_user_exists, check_user_login, insert_user, fs
+from .model import check_user_exists, check_user_login, insert_user, fs, check_password_matches, update_user_details
 
 auth = Blueprint("auth", __name__)
 CORS(auth)
@@ -28,6 +30,14 @@ def check_email():
         print("running get")
         return user_exists
     return "checking email tingz"
+
+@auth.route("/app/check-password", methods=['POST'])
+def check_password():
+    data = request.json
+    email = data['email'].lower()
+    pwd = data['pwd']
+   
+    return {'status': check_password_matches(email, pwd)}
     
 @auth.route("/app/signup", methods=['POST',"GET"])
 def signup():
@@ -68,9 +78,11 @@ def login():
         return user_data
     return "login tingz"
 
-   
-@auth.route('app/upload/img/<id>')
-def gridfs_img(id):
-    thing = fs.get(id)
-    # response.content_type = 'image/jpeg'
-    return thing
+
+@auth.route('app/update', methods=['POST', 'GET'])
+def user_profile_edit():
+    data = request.json
+    user_details = update_user_details(data["email"], data['name'], data['password'])
+    print(user_details)
+
+    return user_details

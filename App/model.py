@@ -1,4 +1,5 @@
 import os
+import time
 import certifi
 
 import gridfs
@@ -36,6 +37,16 @@ def check_user_exists(email):
     user = user_collection.find_one({'email':email.lower()})
     if user:
         return True
+    else:
+        return False
+
+def check_password_matches(email, pwd):
+    user = user_collection.find_one({'email':email.lower()})
+    if user:
+        if check_password_hash(user['password'], pwd):
+            return True
+        else: 
+            return False
     else:
         return False
 
@@ -91,28 +102,27 @@ def check_user_login(email,pwd):
         return user_details
     
 
-def update_user_details(id, email, password, name ):
-    new_value={
-        "name": name, 
-        "email":email.lower(),
-        "password":generate_password_hash(password,method="sha256")
-        }
-    all_update = {
-        "$set": new_value
-        }
-    user_collection.update_one({'key': id}, all_update)
+def update_user_details(email, name, password):
+    user =user_collection.find_one({"email": email.lower()})
+    if user:
+        new_value={
+            "name": name, 
+            "email":email.lower(),
+            "password":generate_password_hash(password,method="sha256") if password else user['password']
+            }
+        all_update = {
+            "$set": new_value
+            }
+        user_collection.update_one({'email': email}, all_update)
+        time.sleep(2.4)
+        return {"name": user['name'],"email": user['email'],"gender": user['gender'],"age": user['age'], "date_joined":user['date_joined']}
 
 def get_user_by_email(email):
     user = user_collection.find_one({'email':email})
     return user    
 
 
-# def add_uploaded_data():
-#     new_img = user_collection.distinct("uploaded_imgsc")
-#     current_img = img_data_collection.distinct("uploaded")
-#     if new_img != current_img:
-#     data = {"uploaded": all_img}
-#     img_data_collection.update_one({'uploaded': email}, {"$push": {"uploaded_imgsc": byteImg}})
+
 
 
 
