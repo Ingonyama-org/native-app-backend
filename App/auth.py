@@ -34,6 +34,7 @@ def signup():
     if request.method == 'POST':
         user_data.clear()
         data = request.json
+        print(data)
         user_data.update({
             "email" :data["email"].lower(),
             "name":data["name"],
