@@ -69,7 +69,7 @@ def login():
     if request.method == 'POST':
         user_data.clear()
         data = request.json
-        user_data.update(check_user_login(data['email'].strip(), data['password'].strip()))
+        user_data.update(check_user_login(data['email'].strip().lower(), data['password'].strip()))
     else:
         return user_data
     return "login tingz"
