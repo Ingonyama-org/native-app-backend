@@ -49,17 +49,13 @@ def signup():
             "email" :data["email"].lower(),
             "name":data["name"],
             "date_joined": today.strftime("%B %d, %Y"),
-            "age": data['age'],
-            "gender": data['gender'],
-            "nationality": data['nationality']
+            "phone_number":data["phone_number"]
         })
        
         insert_user(
             data["name"], 
             data["email"].lower(), 
-            data["age"],
-            data['gender'],
-           data['nationality'],
+            data["phone_number"],
             data['password'],
             today.strftime("%B %d, %Y"),
             )

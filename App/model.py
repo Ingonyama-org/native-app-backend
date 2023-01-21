@@ -21,13 +21,11 @@ fs = gridfs.GridFS(ingonyama_app_db)
 user_collection = ingonyama_app_db.user
 img_detail_collection = ingonyama_app_db.details_img_uploaded
 
-def insert_user(name, email, age, gender, nationality , password, date_joined):
+def insert_user(name, email, phone_number, password, date_joined):
     user = {
         "name": name, 
         "email":email.lower(),
-        "age":age,
-        "gender":gender,
-        "nationality":nationality,
+        "phone_number":phone_number,
         "date_joined":date_joined,
         "password":generate_password_hash(password,method="sha256")
         }
@@ -50,7 +48,7 @@ def check_password_matches(email, pwd):
     else:
         return False
 
-def upload_image(email, img_id, img_filename, time, date, actual_location):
+def upload_image(email, img_id, img_filename, time="undefined", date="undefined", actual_location="undefined"):
     user = user_collection.find_one({'email':email.lower()})
 
     if user:
@@ -115,7 +113,7 @@ def update_user_details(email, name, password):
             }
         user_collection.update_one({'email': email}, all_update)
         time.sleep(2.4)
-        return {"name": user['name'],"email": user['email'],"gender": user['gender'],"age": user['age'], "date_joined":user['date_joined']}
+        return {"name": user['name'],"email": user['email'],"phone_number":user["phone_number"], "date_joined":user['date_joined']}
 
 def get_user_by_email(email):
     user = user_collection.find_one({'email':email})
