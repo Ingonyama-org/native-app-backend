@@ -1,8 +1,9 @@
 import os
+import cv2
 import time
-import certifi
-
 import gridfs
+import certifi
+import numpy as np
 from pymongo import MongoClient
 from dotenv import load_dotenv, find_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -17,7 +18,10 @@ password = os.environ.get('MONGO_PWD')
 connection_string = f"mongodb+srv://lumona:{password}@ingonyama.mhjrkw1.mongodb.net/?retryWrites=true&w=majority"
 client = MongoClient(connection_string, tlsCAFile=certifi.where())
 ingonyama_app_db = client.ingonyama_app_dbl
-fs = gridfs.GridFS(ingonyama_app_db)
+
+# initialize GridFS
+fs = gridfs.GridFS(ingonyama_app_db, collection="uploaded_img")
+
 user_collection = ingonyama_app_db.user
 img_detail_collection = ingonyama_app_db.details_img_uploaded
 
@@ -119,10 +123,47 @@ def get_user_by_email(email):
     user = user_collection.find_one({'email':email})
     return user    
 
+# GETING ALL THE COORDINATES
+def get_coordinates():
+    coordinates = []
+    id_count = 0
+    for document in img_detail_collection.find():
+        actual_location = document.get("actual_location")
+        if actual_location:
+            if isinstance(actual_location, list) and len(actual_location) > 0:
+                coords = actual_location[0].get("coords")
+                if coords:
+                    latitude = coords.get("latitude")
+                    longitude = coords.get("longitude")
+                    if latitude is not None and longitude is not None:
+                        coordinates.append({"id": id_count, "latitude": latitude, "longitude": longitude})
+                        id_count +=1
+    return coordinates
 
 
+def save_images_to_folder():
+    # Create the folder if it doesn't exist
+    folder_path = "uploaded_images"
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+ 
+    # Retrieve the image documents from the collection
+    image_documents = ingonyama_app_db["uploaded_img.files"].find({})
+
+    # Iterate over the image documents and save the images to the folder
+    for document in image_documents:
+        image_id = document["_id"]
+        image_filename = document["filename"]
+        image_data = fs.get(image_id).read()
+
+        # Generate the file path for saving the image
+        file_path = os.path.join(folder_path, image_filename)
+
+        # Save the image to the specified folder
+        with open(file_path, "wb") as file:
+            file.write(image_data)
+
+    print("Images saved to folder: uploaded_images")
 
 
-
-        
-    
+# save_images_to_folder()

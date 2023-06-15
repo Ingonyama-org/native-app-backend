@@ -1,13 +1,13 @@
-from flask import Blueprint, request
+from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 
-from .model import upload_image
+from .model import get_coordinates, upload_image
 
 views = Blueprint("views", __name__)
 CORS(views)
 
 @views.route("/upload/img_detail", methods=['GET', 'POST'])
-def email():
+def img_detail():
     if(request.method == "POST"):
         try:
             email = request.json['email']
@@ -25,11 +25,9 @@ def email():
         except:
             upload_image(request.json['email'], request.json['img_id'], request.json['img_filename'])
         
-        
-        
-
-        
-      
         return "success"
 
-
+@views.route("/map/lion_hotspots", methods=['GET', 'POST'])
+def lion_hotspots():
+    coordinates = get_coordinates()  # Use the function from model.py to get the coordinates
+    return jsonify(coordinates)
